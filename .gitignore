@@ -1,0 +1,12 @@
+# Exclude .venv folder
+.venv/
+
+# Exclude .vscode folder
+.vscode/
+
+# Exclude _pycache_ folder
+__pycache__/
+
+*.key
+
+*.pwd

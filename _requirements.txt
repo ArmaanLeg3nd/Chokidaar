@@ -1,0 +1,17 @@
+certifi==2023.5.7
+cffi==1.15.1
+charset-normalizer==3.2.0
+crypto==1.4.1
+cryptography==41.0.1
+idna==3.4
+Naked==0.1.32
+pycparser==2.21
+pycryptodome==3.18.0
+pycryptodomex==3.18.0
+pyperclip==1.8.2
+PyYAML==6.0
+requests==2.31.0
+shellescape==3.8.1
+urllib3==2.0.3
+wincertstore==0.2
+mysql-connector-python==8.0.32
