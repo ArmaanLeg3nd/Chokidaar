@@ -1,8 +1,6 @@
-# config.py
-
 MYSQL_CONFIG = {
-    'host': 'your_host',
-    'user': 'your_username',
-    'password': 'your_password',
-    'database': 'your_database'
+    'host': 'localhost',
+    'user': 'root',
+    'password': 'root',
+    'database': 'localuser_pass'
 }

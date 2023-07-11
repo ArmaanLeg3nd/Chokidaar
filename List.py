@@ -7,7 +7,9 @@ except ImportError:
 
 import encode
 import json
-import re
+import mysql.connector
+from config import MYSQL_CONFIG
+import pyperclip
 
 
 NORM_FONT = ("Helvetica", 10)
@@ -82,23 +84,28 @@ class getTreeFrame(Frame):
             self.errorMsg()
 
     def getData(self, *arg):
-        fileName = ".data"
-        self.data = None
-        try:
-            with open(fileName, "r") as outfile:
-                self.data = outfile.read()
-        except IOError:
-            return ""
+        # Retrieve data from MySQL database
+        cnx = mysql.connector.connect(**MYSQL_CONFIG)
+        cursor = cnx.cursor()
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS passwords ("
+            "id INT AUTO_INCREMENT PRIMARY KEY, "
+            "service VARCHAR(255) NOT NULL, "
+            "username VARCHAR(255), "
+            "password VARCHAR(255) NOT NULL)"
+        )
+        cursor.execute("SELECT service, username, password FROM passwords")
+        rows = cursor.fetchall()
+        cursor.close()
+        cnx.close()
 
-        if not self.data:
-            return ""
-
-        self.data = json.loads(self.data)
         dataList = []
 
-        for service, details in self.data.items():
-            usr = details[0] if details[0] else "NO ENTRY"
-            dataList.append((service, usr, "*"))
+        for row in rows:
+            service = row[0]
+            username = row[1] if row[1] else "NO ENTRY"
+            password = row[2]
+            dataList.append((service, username, "*"))
 
         return dataList
 
@@ -119,19 +126,17 @@ class getTreeFrame(Frame):
         if selection:
             item = selection[0]
             service = self.tree.item(item, "values")[0]
-            self.deleteEntry(service)
+
+            # Delete record from MySQL database
+            cnx = mysql.connector.connect(**MYSQL_CONFIG)
+            cursor = cnx.cursor()
+            cursor.execute("DELETE FROM passwords WHERE service = %s", (service,))
+            cnx.commit()
+            cursor.close()
+            cnx.close()
+
             self.tree.delete(item)
             self.updateButtonState()
-
-    def deleteEntry(self, service):
-        if service in self.data:
-            del self.data[service]
-            self.saveData()
-
-    def saveData(self):
-        fileName = ".data"
-        with open(fileName, "w") as outfile:
-            outfile.write(json.dumps(self.data, sort_keys=True, indent=4))
 
     def showPassword(self):
         self.selected_item = self.tree.focus()
@@ -139,19 +144,25 @@ class getTreeFrame(Frame):
             service = self.tree.item(self.selected_item, "values")[0]
             tags = self.tree.item(self.selected_item, "tags")
             if "hidden" in tags:
-                # Show the password in the password column
-                password = self.data[service][1]
-                decoded_password = encode.decode(password)
-                self.tree.item(
-                    self.selected_item,
-                    values=(
-                        *self.tree.item(self.selected_item, "values")[:2],
-                        decoded_password,
-                    ),
-                )
-                self.tree.item(self.selected_item, tags=("entry",))
+                # Retrieve the password from the MySQL database
+                cnx = mysql.connector.connect(**MYSQL_CONFIG)
+                cursor = cnx.cursor()
+                cursor.execute("SELECT password FROM passwords WHERE service = %s", (service,))
+                row = cursor.fetchone()
+                if row:
+                    password = row[0]
+                    decoded_password = encode.decode(password)
+                    self.tree.item(
+                        self.selected_item,
+                        values=(
+                            *self.tree.item(self.selected_item, "values")[:2],
+                            decoded_password,
+                        ),
+                    )
+                    self.tree.item(self.selected_item, tags=("entry",))
+                cursor.close()
+                cnx.close()
             else:
-                # Hide the password in the password column
                 self.tree.item(
                     self.selected_item,
                     values=(*self.tree.item(self.selected_item, "values")[:2], "*"),

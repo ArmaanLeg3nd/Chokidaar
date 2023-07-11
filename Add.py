@@ -7,6 +7,8 @@ except ImportError:
 
 import json
 import encode
+import mysql.connector
+from config import MYSQL_CONFIG
 
 LABEL_FONT = ("Monospace", 12)
 BUTTON_FONT = ("Sans-Serif", 10, "bold")
@@ -67,27 +69,26 @@ class AddWindow(Toplevel):
     def addClicked(self, **kwargs):
         fileName = ".data"
         if kwargs["password"].get() != "" and kwargs["service"].get() != "":
-            data = None
             details = [
                 kwargs["username"].get(),
                 encode.encode(kwargs["password"].get()),
             ]
 
-            try:
-                with open(fileName, "r") as outfile:
-                    data = outfile.read()
-            except IOError:
-                open(fileName, "a").close()
-
-            if data:
-                data = json.loads(data)
-                data[kwargs["service"].get()] = details
-            else:
-                data = {}
-                data[kwargs["service"].get()] = details
-
-            with open(fileName, "w") as outfile:
-                outfile.write(json.dumps(data, sort_keys=True, indent=4))
+            # Store data in MySQL database
+            cnx = mysql.connector.connect(**MYSQL_CONFIG)
+            cursor = cnx.cursor()
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS passwords ("
+                "id INT AUTO_INCREMENT PRIMARY KEY, "
+                "service VARCHAR(255) NOT NULL, "
+                "username VARCHAR(255), "
+                "password VARCHAR(255) NOT NULL)"
+            )
+            cursor.execute("INSERT INTO passwords (service, username, password) VALUES (%s, %s, %s)",
+                           (kwargs["service"].get(), kwargs["username"].get(), details[1]))
+            cnx.commit()
+            cursor.close()
+            cnx.close()
 
             for widg in ("username", "service", "password"):
                 kwargs[widg].delete(0, "end")

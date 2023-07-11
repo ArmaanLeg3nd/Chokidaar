@@ -40,7 +40,6 @@ class SearchWindow(Toplevel):
             command=lambda: self.onUpdate(),
         )
         searchBtn.grid(row=0, column=3, sticky="e")
-        # Awesomeness here
         self.tree = List.getTreeFrame(self, bd=3)
         self.tree.pack()
 

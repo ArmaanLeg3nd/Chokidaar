@@ -38,8 +38,8 @@ salt, key = get_salt_and_key()
 
 def encode(string, key=key):
     encoded_bytes = []
-    salt, k = get_salt_and_key()
-    string = string + salt
+    salt, k = get_salt_and_key() 
+    string = string + salt #     Salting the password
     for i in range(len(string)):
         key_c = key[i % len(key)]
         encoded_byte = (ord(string[i]) + ord(key_c)) % 256
@@ -56,5 +56,5 @@ def decode(string, key=key):
         decoded_char = chr((decoded_bytes[i] - ord(key_c)) % 256)
         decoded_chars.append(decoded_char)
     decoded_string = "".join(decoded_chars)
-    decoded_string = decoded_string[: -len(salt)]
+    decoded_string = decoded_string[: -len(salt)] #    Removing the salt from the decrypted password
     return decoded_string
