@@ -13,3 +13,8 @@ This project needs:
 
       pip install mysql-connector-python
 
+## Run
+
+Execute run.bat
+      
+      ./run.bat
