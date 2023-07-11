@@ -12,9 +12,14 @@ This project needs:
 * mysql-connector-python
 
       pip install mysql-connector-python
+      pip install tkinter
+
+Go to config.py, change the username, password, host, and database name to the server credentials you want to use.<br>
+Note: This step is important to store the encrypted data.
 
 ## Run
 
 Execute run.bat
       
       ./run.bat
+
